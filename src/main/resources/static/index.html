@@ -1,0 +1,2268 @@
+```html
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>FinTrack - Personal Finance Management</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+          rel="stylesheet"/>
+
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+          rel="stylesheet"/>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "#f8f9ff",
+                        "surface-low": "#eff4ff",
+                        "surface-high": "#dce9ff",
+                        "outline-variant": "#c2c6d6",
+                        "on-surface-variant": "#424754",
+                        "background": "#f8f9ff",
+                        "on-surface": "#0b1c30",
+                        "primary": "#0058be",
+                        "primary-container": "#2170e4",
+                        "on-primary": "#ffffff",
+                        "secondary": "#006c49",
+                        "secondary-container": "#6cf8bb",
+                        "on-secondary-container": "#00714d",
+                        "tertiary": "#b61722",
+                        "tertiary-container": "#da3437",
+                        "error": "#ba1a1a"
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        display: ["Geist", "sans-serif"],
+                        mono: ["Geist", "monospace"]
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(11, 28, 48, 0.06);
+        }
+
+        .loading {
+            opacity: 0.55;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface font-sans min-h-screen antialiased">
+
+<!-- ========================================================= -->
+<!-- AUTHENTICATION                                            -->
+<!-- ========================================================= -->
+
+<div id="auth-view"
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background">
+
+    <div class="glass-panel w-full max-w-md rounded-2xl p-6 md:p-8">
+
+        <div class="text-center mb-6">
+
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-full
+                        bg-primary text-on-primary mb-3 shadow-md">
+                <span class="material-symbols-outlined text-3xl">
+                    account_balance_wallet
+                </span>
+            </div>
+
+            <h1 id="auth-title"
+                class="font-display text-2xl font-bold text-primary">
+                Welcome to FinTrack
+            </h1>
+
+            <p id="auth-subtitle"
+               class="text-xs text-on-surface-variant mt-1">
+                Sign in to manage your transactions
+            </p>
+        </div>
+
+        <div id="auth-error"
+             class="hidden mb-4 p-3 rounded-lg bg-red-50 border-l-4
+                    border-error text-xs text-error font-medium">
+        </div>
+
+        <div id="auth-success"
+             class="hidden mb-4 p-3 rounded-lg bg-emerald-50 border-l-4
+                    border-secondary text-xs text-secondary font-medium">
+        </div>
+
+        <form id="auth-form"
+              class="space-y-4"
+              onsubmit="handleAuthSubmit(event)">
+
+            <div>
+                <label for="auth-username"
+                       class="block text-xs font-semibold text-on-surface-variant mb-1">
+                    Username
+                </label>
+
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2
+                                 -translate-y-1/2 text-outline-variant text-lg">
+                        person
+                    </span>
+
+                    <input id="auth-username"
+                           type="text"
+                           required
+                           autocomplete="username"
+                           placeholder="Enter username"
+                           class="w-full h-10 pl-10 pr-3 bg-white border
+                                  border-outline-variant rounded-lg text-sm
+                                  focus:border-primary focus:ring-1
+                                  focus:ring-primary outline-none"/>
+                </div>
+            </div>
+
+            <div>
+                <label for="auth-password"
+                       class="block text-xs font-semibold text-on-surface-variant mb-1">
+                    Password
+                </label>
+
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2
+                                 -translate-y-1/2 text-outline-variant text-lg">
+                        lock
+                    </span>
+
+                    <input id="auth-password"
+                           type="password"
+                           required
+                           autocomplete="current-password"
+                           placeholder="Enter password"
+                           class="w-full h-10 pl-10 pr-3 bg-white border
+                                  border-outline-variant rounded-lg text-sm
+                                  focus:border-primary focus:ring-1
+                                  focus:ring-primary outline-none"/>
+                </div>
+            </div>
+
+            <button id="auth-submit-btn"
+                    type="submit"
+                    class="w-full h-10 bg-primary text-on-primary
+                           font-semibold text-sm rounded-lg
+                           hover:bg-primary-container transition shadow
+                           flex items-center justify-center">
+
+                <span id="auth-btn-text">Sign In</span>
+            </button>
+        </form>
+
+        <div class="mt-6 text-center text-xs text-on-surface-variant">
+
+            <span id="auth-toggle-prompt">
+                Don't have an account?
+            </span>
+
+            <button type="button"
+                    onclick="toggleAuthMode()"
+                    id="auth-toggle-btn"
+                    class="text-primary font-semibold hover:underline ml-1">
+                Register now
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!-- APPLICATION                                               -->
+<!-- ========================================================= -->
+
+<div id="app-view"
+     class="hidden flex min-h-screen">
+
+    <!-- SIDEBAR -->
+    <nav class="hidden md:flex flex-col h-screen w-[260px] fixed left-0 top-0
+                bg-surface border-r border-outline-variant py-6 z-30
+                justify-between">
+
+        <div>
+
+            <div class="px-6 flex items-center gap-3 mb-8">
+
+                <div class="w-9 h-9 rounded-lg bg-primary
+                            flex items-center justify-center
+                            text-on-primary shadow-sm">
+
+                    <span class="material-symbols-outlined text-[20px]">
+                        account_balance_wallet
+                    </span>
+                </div>
+
+                <div>
+                    <h1 class="font-display font-bold text-primary text-lg leading-tight">
+                        FinTrack
+                    </h1>
+
+                    <p class="text-[11px] text-on-surface-variant font-medium">
+                        Personal Finance
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+
+                <button onclick="navigate('dashboard')"
+                        id="nav-dashboard"
+                        class="nav-item flex items-center gap-3 px-6 py-3
+                               text-primary bg-primary/10
+                               border-l-[3px] border-primary
+                               font-semibold text-sm transition">
+
+                    <span class="material-symbols-outlined text-[20px]">
+                        dashboard
+                    </span>
+
+                    <span>Dashboard</span>
+                </button>
+
+                <button onclick="navigate('transactions')"
+                        id="nav-transactions"
+                        class="nav-item flex items-center gap-3 px-6 py-3
+                               text-on-surface-variant hover:bg-surface-high
+                               text-sm transition">
+
+                    <span class="material-symbols-outlined text-[20px]">
+                        receipt_long
+                    </span>
+
+                    <span>Transactions</span>
+                </button>
+
+                <button onclick="navigate('reports')"
+                        id="nav-reports"
+                        class="nav-item flex items-center gap-3 px-6 py-3
+                               text-on-surface-variant hover:bg-surface-high
+                               text-sm transition">
+
+                    <span class="material-symbols-outlined text-[20px]">
+                        donut_small
+                    </span>
+
+                    <span>Analytics</span>
+                </button>
+
+            </div>
+        </div>
+
+        <div class="px-4 pt-4 border-t border-outline-variant/40">
+
+            <div class="flex items-center justify-between p-2 rounded-lg
+                        bg-surface-low border border-outline-variant/30">
+
+                <div class="flex items-center gap-2 overflow-hidden">
+
+                    <div class="w-8 h-8 rounded-full bg-primary/20 text-primary
+                                flex items-center justify-center font-bold text-xs">
+
+                        <span id="user-initial">U</span>
+                    </div>
+
+                    <div class="truncate">
+                        <p id="user-display-name"
+                           class="text-xs font-semibold text-on-surface truncate">
+                            User
+                        </p>
+                    </div>
+                </div>
+
+                <button onclick="logout()"
+                        title="Logout"
+                        class="p-1 text-on-surface-variant hover:text-error transition">
+
+                    <span class="material-symbols-outlined text-lg">
+                        logout
+                    </span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- MAIN -->
+    <div class="flex-1 md:ml-[260px] flex flex-col min-h-screen">
+
+        <!-- TOPBAR -->
+        <header class="sticky top-0 z-20 h-16 bg-surface/90 backdrop-blur-md
+                       border-b border-outline-variant flex items-center
+                       justify-between px-4 md:px-8">
+
+            <div class="flex items-center gap-3 md:hidden">
+
+                <span class="material-symbols-outlined text-primary text-2xl">
+                    account_balance_wallet
+                </span>
+
+                <span class="font-display font-bold text-primary text-lg">
+                    FinTrack
+                </span>
+            </div>
+
+            <div class="hidden md:block">
+
+                <h2 id="page-title"
+                    class="font-display font-bold text-xl text-on-surface">
+                    Dashboard Overview
+                </h2>
+            </div>
+
+            <div class="flex items-center gap-3 ml-auto">
+
+                <button onclick="openTransactionModal()"
+                        class="flex items-center gap-2 bg-primary
+                               text-on-primary px-4 py-2 rounded-lg
+                               text-xs font-semibold hover:bg-primary-container
+                               transition shadow-sm">
+
+                    <span class="material-symbols-outlined text-sm">
+                        add
+                    </span>
+
+                    New Transaction
+                </button>
+
+                <button onclick="logout()"
+                        class="md:hidden p-2 text-on-surface-variant
+                               hover:text-error">
+
+                    <span class="material-symbols-outlined text-lg">
+                        logout
+                    </span>
+                </button>
+            </div>
+        </header>
+
+
+        <!-- CONTENT -->
+        <main class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
+
+            <!-- ================================================= -->
+            <!-- DASHBOARD                                         -->
+            <!-- ================================================= -->
+
+            <section id="section-dashboard"
+                     class="space-y-6">
+
+                <!-- KPI CARDS -->
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
+                            xl:grid-cols-6 gap-4">
+
+                    <!-- Balance -->
+                    <div class="bg-white border border-outline-variant
+                                rounded-xl p-4 shadow-sm">
+
+                        <div class="flex justify-between items-center
+                                    text-on-surface-variant">
+
+                            <span class="text-xs font-bold uppercase tracking-wider">
+                                Balance
+                            </span>
+
+                            <span class="material-symbols-outlined text-primary text-lg">
+                                account_balance
+                            </span>
+                        </div>
+
+                        <p id="dash-balance"
+                           class="font-mono text-xl font-bold mt-4 text-on-surface">
+                            ₹0.00
+                        </p>
+
+                        <span class="text-[10px] text-on-surface-variant">
+                            Income - Expense
+                        </span>
+                    </div>
+
+
+                    <!-- Income -->
+                    <div class="bg-white border border-outline-variant
+                                rounded-xl p-4 shadow-sm">
+
+                        <div class="flex justify-between items-center
+                                    text-on-surface-variant">
+
+                            <span class="text-xs font-bold uppercase tracking-wider">
+                                Income
+                            </span>
+
+                            <span class="material-symbols-outlined text-secondary text-lg">
+                                arrow_downward
+                            </span>
+                        </div>
+
+                        <p id="dash-income"
+                           class="font-mono text-xl font-bold mt-4 text-secondary">
+                            +₹0.00
+                        </p>
+
+                        <span class="text-[10px] text-secondary">
+                            All incoming cash
+                        </span>
+                    </div>
+
+
+                    <!-- Expense -->
+                    <div class="bg-white border border-outline-variant
+                                rounded-xl p-4 shadow-sm">
+
+                        <div class="flex justify-between items-center
+                                    text-on-surface-variant">
+
+                            <span class="text-xs font-bold uppercase tracking-wider">
+                                Expense
+                            </span>
+
+                            <span class="material-symbols-outlined text-tertiary text-lg">
+                                arrow_upward
+                            </span>
+                        </div>
+
+                        <p id="dash-expense"
+                           class="font-mono text-xl font-bold mt-4 text-tertiary">
+                            -₹0.00
+                        </p>
+
+                        <span class="text-[10px] text-tertiary">
+                            Total outgoings
+                        </span>
+                    </div>
+
+
+                    <!-- Average -->
+                    <div class="bg-white border border-outline-variant
+                                rounded-xl p-4 shadow-sm">
+
+                        <div class="flex justify-between items-center
+                                    text-on-surface-variant">
+
+                            <span class="text-xs font-bold uppercase tracking-wider">
+                                Avg Spending
+                            </span>
+
+                            <span class="material-symbols-outlined text-primary text-lg">
+                                calculate
+                            </span>
+                        </div>
+
+                        <p id="dash-avg-spend"
+                           class="font-mono text-xl font-bold mt-4 text-on-surface">
+                            ₹0.00
+                        </p>
+
+                        <span class="text-[10px] text-on-surface-variant">
+                            Average transaction
+                        </span>
+                    </div>
+
+
+                    <!-- Highest Expense -->
+                    <div class="bg-white border border-outline-variant
+                                rounded-xl p-4 shadow-sm">
+
+                        <div class="flex justify-between items-center
+                                    text-on-surface-variant">
+
+                            <span class="text-xs font-bold uppercase tracking-wider">
+                                Highest Expense
+                            </span>
+
+                            <span class="material-symbols-outlined text-tertiary text-lg">
+                                trending_up
+                            </span>
+                        </div>
+
+                        <p id="dash-highest-expense"
+                           class="font-mono text-xl font-bold mt-4 text-tertiary">
+                            ₹0.00
+                        </p>
+
+                        <span class="text-[10px] text-tertiary">
+                            Single highest expense
+                        </span>
+                    </div>
+
+
+                    <!-- Top Category -->
+                    <div class="bg-white border border-outline-variant
+                                rounded-xl p-4 shadow-sm">
+
+                        <div class="flex justify-between items-center
+                                    text-on-surface-variant">
+
+                            <span class="text-xs font-bold uppercase tracking-wider">
+                                Top Category
+                            </span>
+
+                            <span class="material-symbols-outlined text-on-surface-variant text-lg">
+                                category
+                            </span>
+                        </div>
+
+                        <p id="dash-top-category"
+                           class="font-display text-lg font-bold mt-4
+                                  text-on-surface truncate">
+                            None
+                        </p>
+
+                        <span class="text-[10px] text-on-surface-variant">
+                            Highest spending category
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <!-- CHART + RECENT -->
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- Monthly -->
+                    <div class="lg:col-span-2 bg-white border
+                                border-outline-variant rounded-xl p-5
+                                shadow-sm min-h-[340px]">
+
+                        <div class="mb-4">
+
+                            <h3 class="font-display font-bold text-sm text-on-surface">
+                                Monthly Expense History
+                            </h3>
+
+                            <p class="text-xs text-on-surface-variant">
+                                Expense totals grouped by month
+                            </p>
+                        </div>
+
+                        <div id="monthly-chart-bars"
+                             class="flex items-end justify-around gap-2
+                                    border-b border-outline-variant/60
+                                    pb-2 pt-6 h-[240px]">
+
+                        </div>
+                    </div>
+
+
+                    <!-- Recent -->
+                    <div class="bg-white border border-outline-variant
+                                rounded-xl p-5 shadow-sm flex flex-col">
+
+                        <div class="flex justify-between items-center mb-4">
+
+                            <h3 class="font-display font-bold text-sm text-on-surface">
+                                Recent Activity
+                            </h3>
+
+                            <button onclick="navigate('transactions')"
+                                    class="text-primary text-xs font-semibold hover:underline">
+                                View All
+                            </button>
+                        </div>
+
+                        <ul id="dash-recent-list"
+                            class="divide-y divide-outline-variant/30
+                                   overflow-y-auto max-h-[260px] text-xs">
+
+                            <li class="py-3 text-center text-on-surface-variant">
+                                No transactions found.
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ================================================= -->
+            <!-- TRANSACTIONS                                      -->
+            <!-- ================================================= -->
+
+            <section id="section-transactions"
+                     class="space-y-4 hidden">
+
+                <div class="bg-white border border-outline-variant
+                            rounded-xl p-3 flex flex-col sm:flex-row
+                            gap-3 items-center justify-between shadow-sm">
+
+                    <div class="relative w-full sm:w-80">
+
+                        <span class="material-symbols-outlined absolute left-3
+                                     top-1/2 -translate-y-1/2
+                                     text-outline-variant text-sm">
+                            search
+                        </span>
+
+                        <input id="tx-search-input"
+                               oninput="filterTransactionsLocal()"
+                               type="text"
+                               placeholder="Filter current page..."
+                               class="w-full h-9 pl-9 pr-3 text-xs
+                                      bg-surface-low border border-outline-variant
+                                      rounded-lg outline-none focus:border-primary"/>
+                    </div>
+
+                    <span class="text-[11px] text-on-surface-variant">
+                        Search filters the currently loaded page
+                    </span>
+                </div>
+
+
+                <div class="bg-white border border-outline-variant
+                            rounded-xl overflow-hidden shadow-sm">
+
+                    <div class="overflow-x-auto">
+
+                        <table class="w-full text-left text-xs">
+
+                            <thead class="bg-surface-low border-b
+                                         border-outline-variant font-semibold
+                                         text-on-surface-variant uppercase">
+
+                            <tr>
+                                <th class="p-3">Date</th>
+                                <th class="p-3">Category</th>
+                                <th class="p-3">Description</th>
+                                <th class="p-3">Type</th>
+                                <th class="p-3 text-right">Amount</th>
+                                <th class="p-3 text-center">Actions</th>
+                            </tr>
+
+                            </thead>
+
+                            <tbody id="tx-table-body"
+                                   class="divide-y divide-outline-variant/40">
+                            </tbody>
+
+                        </table>
+                    </div>
+
+
+                    <div class="flex items-center justify-between
+                                p-3 border-t border-outline-variant
+                                bg-surface-low">
+
+                        <span id="pagination-info"
+                              class="text-xs text-on-surface-variant">
+                            Page 1
+                        </span>
+
+                        <div class="flex gap-1">
+
+                            <button id="btn-prev-page"
+                                    onclick="changePage(-1)"
+                                    class="px-2 py-1 rounded border
+                                           border-outline-variant text-xs
+                                           bg-white hover:bg-surface-high
+                                           disabled:opacity-40">
+                                Prev
+                            </button>
+
+                            <button id="btn-next-page"
+                                    onclick="changePage(1)"
+                                    class="px-2 py-1 rounded border
+                                           border-outline-variant text-xs
+                                           bg-white hover:bg-surface-high
+                                           disabled:opacity-40">
+                                Next
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ================================================= -->
+            <!-- ANALYTICS                                         -->
+            <!-- ================================================= -->
+
+            <section id="section-reports"
+                     class="space-y-6 hidden">
+
+                <div class="bg-white border border-outline-variant
+                            rounded-xl p-5 shadow-sm">
+
+                    <h3 class="font-display font-bold text-sm text-on-surface">
+                        Category Spending Distribution
+                    </h3>
+
+                    <p class="text-xs text-on-surface-variant mb-6">
+                        Proportional breakdown of recorded expenses
+                    </p>
+
+                    <div id="category-breakdown-list"
+                         class="space-y-4 max-w-2xl">
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!-- TRANSACTION MODAL                                         -->
+<!-- ========================================================= -->
+
+<div id="tx-modal"
+     class="fixed inset-0 z-50 flex items-center justify-center
+            p-4 bg-on-surface/30 backdrop-blur-sm hidden">
+
+    <div class="bg-white rounded-2xl w-full max-w-md overflow-hidden
+                shadow-2xl border border-outline-variant">
+
+        <div class="flex justify-between items-center px-6 py-4
+                    border-b border-outline-variant">
+
+            <h3 id="modal-title"
+                class="font-display font-bold text-sm text-on-surface">
+                Add Transaction
+            </h3>
+
+            <button onclick="closeTransactionModal()"
+                    class="text-on-surface-variant hover:text-error">
+
+                <span class="material-symbols-outlined text-lg">
+                    close
+                </span>
+            </button>
+        </div>
+
+
+        <form id="tx-form"
+              onsubmit="handleTransactionSave(event)"
+              class="p-6 space-y-4">
+
+            <input type="hidden" id="tx-id"/>
+
+
+            <!-- TYPE -->
+
+            <div class="flex gap-2 p-1 bg-surface-low rounded-lg
+                        border border-outline-variant">
+
+                <button type="button"
+                        id="type-expense-btn"
+                        onclick="setTxType('EXPENSE')"
+                        class="flex-1 py-1.5 rounded text-xs font-bold
+                               bg-tertiary text-white">
+
+                    Expense
+                </button>
+
+                <button type="button"
+                        id="type-income-btn"
+                        onclick="setTxType('INCOME')"
+                        class="flex-1 py-1.5 rounded text-xs font-bold
+                               text-on-surface-variant">
+
+                    Income
+                </button>
+            </div>
+
+            <input type="hidden"
+                   id="tx-type"
+                   value="EXPENSE"/>
+
+
+            <!-- AMOUNT -->
+
+            <div>
+
+                <label for="tx-amount"
+                       class="block text-xs font-semibold
+                              text-on-surface-variant mb-1">
+
+                    Amount (₹) *
+                </label>
+
+                <input id="tx-amount"
+                       type="number"
+                       step="0.01"
+                       min="1"
+                       required
+                       placeholder="0.00"
+                       class="w-full h-9 px-3 text-xs bg-surface-low
+                              border border-outline-variant rounded-lg
+                              font-mono outline-none focus:border-primary"/>
+            </div>
+
+
+            <!-- DATE -->
+
+            <div>
+
+                <label for="tx-date"
+                       class="block text-xs font-semibold
+                              text-on-surface-variant mb-1">
+
+                    Date *
+                </label>
+
+                <input id="tx-date"
+                       type="date"
+                       required
+                       class="w-full h-9 px-3 text-xs bg-surface-low
+                              border border-outline-variant rounded-lg
+                              font-mono outline-none focus:border-primary"/>
+            </div>
+
+
+            <!-- CATEGORY -->
+
+            <div>
+
+                <label for="tx-category"
+                       class="block text-xs font-semibold
+                              text-on-surface-variant mb-1">
+
+                    Category *
+                </label>
+
+                <input id="tx-category"
+                       type="text"
+                       required
+                       placeholder="e.g. Groceries, Rent, Salary"
+                       class="w-full h-9 px-3 text-xs bg-surface-low
+                              border border-outline-variant rounded-lg
+                              outline-none focus:border-primary"/>
+            </div>
+
+
+            <!-- DESCRIPTION -->
+
+            <div>
+
+                <label for="tx-description"
+                       class="block text-xs font-semibold
+                              text-on-surface-variant mb-1">
+
+                    Description
+                </label>
+
+                <input id="tx-description"
+                       type="text"
+                       placeholder="Short memo..."
+                       class="w-full h-9 px-3 text-xs bg-surface-low
+                              border border-outline-variant rounded-lg
+                              outline-none focus:border-primary"/>
+            </div>
+
+
+            <!-- BUTTONS -->
+
+            <div class="pt-2 flex justify-end gap-2">
+
+                <button type="button"
+                        onclick="closeTransactionModal()"
+                        class="px-4 py-2 rounded-lg border
+                               border-outline-variant text-xs font-semibold
+                               text-on-surface-variant hover:bg-surface-high">
+
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="px-4 py-2 rounded-lg bg-primary
+                               text-on-primary text-xs font-semibold
+                               hover:bg-primary-container shadow-sm">
+
+                    Save
+                </button>
+
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<!-- ========================================================= -->
+<!-- JAVASCRIPT                                                -->
+<!-- ========================================================= -->
+
+<script>
+
+    const API_BASE = "http://localhost:8080";
+
+    let isAuthLogin = true;
+
+    let currentPage = 0;
+    const pageSize = 10;
+
+    let totalPages = 1;
+    let rawTransactions = [];
+
+
+    /* =========================================================
+       HELPERS
+       ========================================================= */
+
+    function formatCurrency(value) {
+
+        const number = Number(value);
+
+        if (!Number.isFinite(number)) {
+            return "₹0.00";
+        }
+
+        return `₹${number.toFixed(2)}`;
+    }
+
+
+    function getLocalDate() {
+
+        const now = new Date();
+
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    }
+
+
+    function escapeHtml(value) {
+
+        if (value === null || value === undefined) {
+            return "";
+        }
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
+    function getAuthHeaders() {
+
+        const token = localStorage.getItem("fintrack_jwt_token");
+
+        return {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        };
+    }
+
+
+    function handleUnauthorized(response) {
+
+        if (response.status === 401 || response.status === 403) {
+            logout();
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /* =========================================================
+       INITIALIZATION
+       ========================================================= */
+
+    document.addEventListener("DOMContentLoaded", () => {
+
+        const token = localStorage.getItem("fintrack_jwt_token");
+
+        if (!token) {
+            showAuthView();
+        } else {
+            showAppView();
+        }
+    });
+
+
+    function showAuthView() {
+
+        document.getElementById("auth-view").classList.remove("hidden");
+        document.getElementById("app-view").classList.add("hidden");
+    }
+
+
+    function showAppView() {
+
+        document.getElementById("auth-view").classList.add("hidden");
+        document.getElementById("app-view").classList.remove("hidden");
+
+        navigate("dashboard");
+    }
+
+
+    /* =========================================================
+       AUTHENTICATION
+       ========================================================= */
+
+    function toggleAuthMode() {
+
+        isAuthLogin = !isAuthLogin;
+
+        document.getElementById("auth-error").classList.add("hidden");
+        document.getElementById("auth-success").classList.add("hidden");
+
+        document.getElementById("auth-form").reset();
+
+        if (isAuthLogin) {
+
+            document.getElementById("auth-title").textContent =
+                "Welcome to FinTrack";
+
+            document.getElementById("auth-subtitle").textContent =
+                "Sign in to manage your transactions";
+
+            document.getElementById("auth-btn-text").textContent =
+                "Sign In";
+
+            document.getElementById("auth-toggle-prompt").textContent =
+                "Don't have an account?";
+
+            document.getElementById("auth-toggle-btn").textContent =
+                "Register now";
+
+        } else {
+
+            document.getElementById("auth-title").textContent =
+                "Create Account";
+
+            document.getElementById("auth-subtitle").textContent =
+                "Register a new FinTrack workspace";
+
+            document.getElementById("auth-btn-text").textContent =
+                "Register";
+
+            document.getElementById("auth-toggle-prompt").textContent =
+                "Already have an account?";
+
+            document.getElementById("auth-toggle-btn").textContent =
+                "Sign in instead";
+        }
+    }
+
+
+    async function handleAuthSubmit(event) {
+
+        event.preventDefault();
+
+        const errorBox = document.getElementById("auth-error");
+        const successBox = document.getElementById("auth-success");
+        const button = document.getElementById("auth-submit-btn");
+
+        errorBox.classList.add("hidden");
+        successBox.classList.add("hidden");
+
+        const username =
+            document.getElementById("auth-username").value.trim();
+
+        const password =
+            document.getElementById("auth-password").value;
+
+        const endpoint =
+            isAuthLogin ? "/auth/login" : "/auth/register";
+
+        button.disabled = true;
+        button.classList.add("loading");
+
+        try {
+
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username,
+                    password
+                })
+            });
+
+            const responseText = await response.text();
+
+            if (!response.ok) {
+                throw new Error(
+                    responseText || "Authentication failed."
+                );
+            }
+
+
+            if (isAuthLogin) {
+
+                localStorage.setItem(
+                    "fintrack_jwt_token",
+                    responseText
+                );
+
+                localStorage.setItem(
+                    "fintrack_username",
+                    username
+                );
+
+                showAppView();
+
+            } else {
+
+                /*
+                 * Registration succeeded.
+                 * Switch back to login manually instead of using
+                 * toggleAuthMode(), because toggleAuthMode() clears
+                 * the success message.
+                 */
+
+                isAuthLogin = true;
+
+                document.getElementById("auth-title").textContent =
+                    "Welcome to FinTrack";
+
+                document.getElementById("auth-subtitle").textContent =
+                    "Sign in to manage your transactions";
+
+                document.getElementById("auth-btn-text").textContent =
+                    "Sign In";
+
+                document.getElementById("auth-toggle-prompt").textContent =
+                    "Don't have an account?";
+
+                document.getElementById("auth-toggle-btn").textContent =
+                    "Register now";
+
+                document.getElementById("auth-form").reset();
+
+                successBox.textContent =
+                    "Registration successful! Please sign in.";
+
+                successBox.classList.remove("hidden");
+            }
+
+        } catch (error) {
+
+            errorBox.textContent =
+                error.message || "Something went wrong.";
+
+            errorBox.classList.remove("hidden");
+
+        } finally {
+
+            button.disabled = false;
+            button.classList.remove("loading");
+        }
+    }
+
+
+    function logout() {
+
+        localStorage.removeItem("fintrack_jwt_token");
+        localStorage.removeItem("fintrack_username");
+
+        rawTransactions = [];
+        currentPage = 0;
+        totalPages = 1;
+
+        showAuthView();
+    }
+
+
+    /* =========================================================
+       NAVIGATION
+       ========================================================= */
+
+    function navigate(tab) {
+
+        document.querySelectorAll(".nav-item").forEach(item => {
+
+            item.classList.remove(
+                "text-primary",
+                "bg-primary/10",
+                "border-l-[3px]",
+                "border-primary",
+                "font-semibold"
+            );
+
+            item.classList.add("text-on-surface-variant");
+        });
+
+
+        document.getElementById("section-dashboard")
+            .classList.add("hidden");
+
+        document.getElementById("section-transactions")
+            .classList.add("hidden");
+
+        document.getElementById("section-reports")
+            .classList.add("hidden");
+
+
+        const activeButton =
+            document.getElementById(`nav-${tab}`);
+
+        if (activeButton) {
+
+            activeButton.classList.remove(
+                "text-on-surface-variant"
+            );
+
+            activeButton.classList.add(
+                "text-primary",
+                "bg-primary/10",
+                "border-l-[3px]",
+                "border-primary",
+                "font-semibold"
+            );
+        }
+
+
+        const username =
+            localStorage.getItem("fintrack_username") || "User";
+
+        document.getElementById("user-display-name")
+            .textContent = username;
+
+        document.getElementById("user-initial")
+            .textContent =
+            username.charAt(0).toUpperCase();
+
+
+        if (tab === "dashboard") {
+
+            document.getElementById("page-title")
+                .textContent = "Dashboard Overview";
+
+            document.getElementById("section-dashboard")
+                .classList.remove("hidden");
+
+            loadDashboardData();
+
+        } else if (tab === "transactions") {
+
+            document.getElementById("page-title")
+                .textContent = "Transaction Ledger";
+
+            document.getElementById("section-transactions")
+                .classList.remove("hidden");
+
+            loadTransactions(currentPage);
+
+        } else if (tab === "reports") {
+
+            document.getElementById("page-title")
+                .textContent = "Analytics & Reports";
+
+            document.getElementById("section-reports")
+                .classList.remove("hidden");
+
+            loadReportsData();
+        }
+    }
+
+
+    /* =========================================================
+       DASHBOARD
+       ========================================================= */
+
+    async function loadDashboardData() {
+
+        try {
+
+            const response = await fetch(
+                `${API_BASE}/dashboard`,
+                {
+                    headers: getAuthHeaders()
+                }
+            );
+
+            if (handleUnauthorized(response)) {
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Unable to load dashboard.");
+            }
+
+            const data = await response.json();
+
+
+            /* KPI */
+
+            document.getElementById("dash-balance")
+                .textContent =
+                formatCurrency(data.balance);
+
+            document.getElementById("dash-income")
+                .textContent =
+                `+${formatCurrency(data.totalIncome)}`;
+
+            document.getElementById("dash-expense")
+                .textContent =
+                `-${formatCurrency(data.totalExpense)}`;
+
+            document.getElementById("dash-avg-spend")
+                .textContent =
+                formatCurrency(data.averageSpending);
+
+            document.getElementById("dash-highest-expense")
+                .textContent =
+                formatCurrency(data.highestExpense);
+
+            document.getElementById("dash-top-category")
+                .textContent =
+                data.topCategory || "None";
+
+
+            /* MONTHLY SPENDING */
+
+            renderMonthlyChart(
+                data.monthlySpending || {}
+            );
+
+
+            /* RECENT TRANSACTIONS */
+
+            await loadRecentTransactions();
+
+        } catch (error) {
+
+            console.error(
+                "Dashboard error:",
+                error
+            );
+        }
+    }
+
+
+    function renderMonthlyChart(monthlySpending) {
+
+        const container =
+            document.getElementById("monthly-chart-bars");
+
+        container.innerHTML = "";
+
+        const months =
+            Object.keys(monthlySpending);
+
+
+        if (months.length === 0) {
+
+            container.innerHTML = `
+                <p class="text-xs text-on-surface-variant
+                          self-center mx-auto">
+                    No monthly spending data yet.
+                </p>
+            `;
+
+            return;
+        }
+
+
+        const values =
+            Object.values(monthlySpending)
+                .map(Number)
+                .filter(Number.isFinite);
+
+
+        const maxValue =
+            Math.max(...values, 100);
+
+
+        months.forEach(month => {
+
+            const value =
+                Number(monthlySpending[month]) || 0;
+
+            const percentage =
+                Math.min(
+                    100,
+                    Math.round(
+                        (value / maxValue) * 100
+                    )
+                );
+
+
+            container.innerHTML += `
+                <div class="flex flex-col items-center
+                            flex-1 h-full justify-end group">
+
+                    <div class="w-full max-w-[36px]
+                                bg-primary/80
+                                group-hover:bg-primary
+                                rounded-t transition-all"
+                         style="height:${percentage}%"
+                         title="${formatCurrency(value)}">
+                    </div>
+
+                    <span class="font-mono text-[10px]
+                                 text-on-surface-variant
+                                 mt-2 truncate w-full text-center">
+                        ${escapeHtml(month)}
+                    </span>
+                </div>
+            `;
+        });
+    }
+
+
+    async function loadRecentTransactions() {
+
+        try {
+
+            const response = await fetch(
+                `${API_BASE}/Transactions/paginated?page=0&size=5`,
+                {
+                    headers: getAuthHeaders()
+                }
+            );
+
+            if (handleUnauthorized(response)) {
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    "Unable to load recent transactions."
+                );
+            }
+
+            const data =
+                await response.json();
+
+            const list =
+                document.getElementById("dash-recent-list");
+
+            list.innerHTML = "";
+
+
+            if (
+                !data.content ||
+                data.content.length === 0
+            ) {
+
+                list.innerHTML = `
+                    <li class="py-3 text-center
+                              text-on-surface-variant">
+                        No transactions yet.
+                    </li>
+                `;
+
+                return;
+            }
+
+
+            data.content.forEach(transaction => {
+
+                const isIncome =
+                    transaction.type === "INCOME";
+
+
+                list.innerHTML += `
+                    <li class="py-2.5 flex items-center
+                               justify-between gap-3">
+
+                        <div class="min-w-0">
+
+                            <p class="font-medium
+                                      text-on-surface truncate">
+
+                                ${escapeHtml(
+                    transaction.category
+                )}
+
+                            </p>
+
+                            <span class="text-[10px]
+                                         text-on-surface-variant
+                                         font-mono">
+
+                                ${escapeHtml(
+                    transaction.date
+                )}
+
+                            </span>
+                        </div>
+
+                        <span class="font-mono font-bold
+                                     whitespace-nowrap
+                                     ${isIncome
+                    ? "text-secondary"
+                    : "text-tertiary"}">
+
+                            ${isIncome ? "+" : "-"}
+                            ${formatCurrency(
+                    transaction.amount
+                )}
+
+                        </span>
+                    </li>
+                `;
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Recent transaction error:",
+                error
+            );
+        }
+    }
+
+
+    /* =========================================================
+       TRANSACTIONS
+       ========================================================= */
+
+    async function loadTransactions(page) {
+
+        try {
+
+            const response = await fetch(
+                `${API_BASE}/Transactions/paginated?page=${page}&size=${pageSize}`,
+                {
+                    headers: getAuthHeaders()
+                }
+            );
+
+            if (handleUnauthorized(response)) {
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    "Unable to load transactions."
+                );
+            }
+
+            const data =
+                await response.json();
+
+
+            currentPage =
+                data.number ?? page;
+
+            totalPages =
+                data.totalPages || 1;
+
+            rawTransactions =
+                data.content || [];
+
+
+            document.getElementById("pagination-info")
+                .textContent =
+                `Page ${currentPage + 1} of ${Math.max(
+                    1,
+                    totalPages
+                )}`;
+
+
+            document.getElementById("btn-prev-page")
+                .disabled =
+                data.first;
+
+            document.getElementById("btn-next-page")
+                .disabled =
+                data.last;
+
+
+            renderTransactionsTable(
+                rawTransactions
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Transaction loading error:",
+                error
+            );
+        }
+    }
+
+
+    function renderTransactionsTable(list) {
+
+        const tbody =
+            document.getElementById("tx-table-body");
+
+        tbody.innerHTML = "";
+
+
+        if (!list.length) {
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6"
+                        class="p-4 text-center
+                               text-on-surface-variant">
+                        No transactions recorded.
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+
+        list.forEach(transaction => {
+
+            const isIncome =
+                transaction.type === "INCOME";
+
+
+            const safeTransaction =
+                JSON.stringify(transaction)
+                    .replace(/'/g, "&#39;");
+
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-surface-low transition">
+
+                    <td class="p-3 font-mono
+                               text-on-surface-variant">
+
+                        ${escapeHtml(
+                transaction.date
+            )}
+
+                    </td>
+
+
+                    <td class="p-3 font-semibold
+                               text-on-surface">
+
+                        ${escapeHtml(
+                transaction.category
+            )}
+
+                    </td>
+
+
+                    <td class="p-3
+                               text-on-surface-variant">
+
+                        ${escapeHtml(
+                transaction.description || "-"
+            )}
+
+                    </td>
+
+
+                    <td class="p-3">
+
+                        <span class="px-2 py-0.5 rounded
+                                     text-[10px] font-bold
+                                     ${isIncome
+                ? "bg-secondary/10 text-secondary"
+                : "bg-tertiary/10 text-tertiary"}">
+
+                            ${escapeHtml(
+                transaction.type
+            )}
+
+                        </span>
+                    </td>
+
+
+                    <td class="p-3 text-right
+                               font-mono font-bold
+                               ${isIncome
+                ? "text-secondary"
+                : "text-tertiary"}">
+
+                        ${isIncome ? "+" : "-"}
+                        ${formatCurrency(
+                transaction.amount
+            )}
+
+                    </td>
+
+
+                    <td class="p-3 text-center">
+
+                        <div class="flex items-center
+                                    justify-center gap-2">
+
+                            <button
+                                onclick='editTransaction(${safeTransaction})'
+                                title="Edit">
+
+                                <span class="material-symbols-outlined
+                                             text-sm
+                                             text-on-surface-variant
+                                             hover:text-primary">
+
+                                    edit
+                                </span>
+
+                            </button>
+
+
+                            <button
+                                onclick="deleteTransaction(${Number(transaction.id)})"
+                                title="Delete">
+
+                                <span class="material-symbols-outlined
+                                             text-sm
+                                             text-on-surface-variant
+                                             hover:text-error">
+
+                                    delete
+                                </span>
+
+                            </button>
+
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+
+    function filterTransactionsLocal() {
+
+        const query =
+            document.getElementById(
+                "tx-search-input"
+            ).value
+                .trim()
+                .toLowerCase();
+
+
+        const filtered =
+            rawTransactions.filter(transaction => {
+
+                const category =
+                    String(
+                        transaction.category || ""
+                    ).toLowerCase();
+
+                const description =
+                    String(
+                        transaction.description || ""
+                    ).toLowerCase();
+
+                return (
+                    category.includes(query) ||
+                    description.includes(query)
+                );
+            });
+
+
+        renderTransactionsTable(filtered);
+    }
+
+
+    function changePage(delta) {
+
+        const target =
+            currentPage + delta;
+
+
+        if (
+            target >= 0 &&
+            target < totalPages
+        ) {
+
+            document.getElementById(
+                "tx-search-input"
+            ).value = "";
+
+            loadTransactions(target);
+        }
+    }
+
+
+    /* =========================================================
+       TRANSACTION MODAL
+       ========================================================= */
+
+    function setTxType(type) {
+
+        document.getElementById(
+            "tx-type"
+        ).value = type;
+
+
+        const expenseButton =
+            document.getElementById(
+                "type-expense-btn"
+            );
+
+        const incomeButton =
+            document.getElementById(
+                "type-income-btn"
+            );
+
+
+        if (type === "EXPENSE") {
+
+            expenseButton.className =
+                "flex-1 py-1.5 rounded text-xs font-bold " +
+                "transition bg-tertiary text-white";
+
+            incomeButton.className =
+                "flex-1 py-1.5 rounded text-xs font-bold " +
+                "transition text-on-surface-variant";
+
+        } else {
+
+            incomeButton.className =
+                "flex-1 py-1.5 rounded text-xs font-bold " +
+                "transition bg-secondary text-white";
+
+            expenseButton.className =
+                "flex-1 py-1.5 rounded text-xs font-bold " +
+                "transition text-on-surface-variant";
+        }
+    }
+
+
+    function openTransactionModal() {
+
+        document.getElementById(
+            "tx-form"
+        ).reset();
+
+        document.getElementById(
+            "tx-id"
+        ).value = "";
+
+        document.getElementById(
+            "modal-title"
+        ).textContent =
+            "Add Transaction";
+
+        document.getElementById(
+            "tx-date"
+        ).value =
+            getLocalDate();
+
+        setTxType("EXPENSE");
+
+        document.getElementById(
+            "tx-modal"
+        ).classList.remove("hidden");
+    }
+
+
+    function closeTransactionModal() {
+
+        document.getElementById(
+            "tx-modal"
+        ).classList.add("hidden");
+    }
+
+
+    function editTransaction(transaction) {
+
+        document.getElementById(
+            "tx-id"
+        ).value =
+            transaction.id;
+
+
+        document.getElementById(
+            "tx-amount"
+        ).value =
+            transaction.amount;
+
+
+        document.getElementById(
+            "tx-date"
+        ).value =
+            transaction.date;
+
+
+        document.getElementById(
+            "tx-category"
+        ).value =
+            transaction.category;
+
+
+        document.getElementById(
+            "tx-description"
+        ).value =
+            transaction.description || "";
+
+
+        setTxType(
+            transaction.type
+        );
+
+
+        document.getElementById(
+            "modal-title"
+        ).textContent =
+            "Edit Transaction";
+
+
+        document.getElementById(
+            "tx-modal"
+        ).classList.remove("hidden");
+    }
+
+
+    /* =========================================================
+       CREATE / UPDATE
+       ========================================================= */
+
+    async function handleTransactionSave(event) {
+
+        event.preventDefault();
+
+
+        const id =
+            document.getElementById(
+                "tx-id"
+            ).value;
+
+
+        const payload = {
+
+            amount:
+                parseFloat(
+                    document.getElementById(
+                        "tx-amount"
+                    ).value
+                ),
+
+            type:
+            document.getElementById(
+                "tx-type"
+            ).value,
+
+            date:
+            document.getElementById(
+                "tx-date"
+            ).value,
+
+            category:
+                document.getElementById(
+                    "tx-category"
+                ).value.trim(),
+
+            description:
+                document.getElementById(
+                    "tx-description"
+                ).value.trim()
+        };
+
+
+        const isEdit =
+            id !== "";
+
+
+        const url =
+            isEdit
+                ? `${API_BASE}/Transactions/${id}`
+                : `${API_BASE}/Transactions`;
+
+
+        const method =
+            isEdit
+                ? "PUT"
+                : "POST";
+
+
+        try {
+
+            const response =
+                await fetch(url, {
+
+                    method,
+
+                    headers:
+                        getAuthHeaders(),
+
+                    body:
+                        JSON.stringify(payload)
+                });
+
+
+            if (handleUnauthorized(response)) {
+                return;
+            }
+
+
+            if (!response.ok) {
+
+                const errorText =
+                    await response.text();
+
+                throw new Error(
+                    errorText ||
+                    "Could not save transaction."
+                );
+            }
+
+
+            closeTransactionModal();
+
+            await loadTransactions(
+                currentPage
+            );
+
+            await loadDashboardData();
+
+            await loadReportsData();
+
+        } catch (error) {
+
+            alert(
+                error.message ||
+                "Could not save transaction."
+            );
+        }
+    }
+
+
+    /* =========================================================
+       DELETE
+       ========================================================= */
+
+    async function deleteTransaction(id) {
+
+        if (
+            !confirm(
+                "Are you sure you want to delete this transaction?"
+            )
+        ) {
+            return;
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_BASE}/Transactions/${id}`,
+                    {
+                        method: "DELETE",
+                        headers: getAuthHeaders()
+                    }
+                );
+
+
+            if (handleUnauthorized(response)) {
+                return;
+            }
+
+
+            if (!response.ok) {
+
+                const errorText =
+                    await response.text();
+
+                throw new Error(
+                    errorText ||
+                    "Failed to delete transaction."
+                );
+            }
+
+
+            /*
+             * If the last transaction on a page was deleted,
+             * make sure pagination does not stay on an empty page.
+             */
+
+            if (
+                rawTransactions.length === 1 &&
+                currentPage > 0
+            ) {
+
+                currentPage--;
+            }
+
+
+            await loadTransactions(
+                currentPage
+            );
+
+            await loadDashboardData();
+
+            await loadReportsData();
+
+        } catch (error) {
+
+            alert(
+                error.message ||
+                "Failed to delete transaction."
+            );
+        }
+    }
+
+
+    /* =========================================================
+       ANALYTICS / CATEGORY BREAKDOWN
+       ========================================================= */
+
+    async function loadReportsData() {
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_BASE}/dashboard`,
+                    {
+                        headers:
+                            getAuthHeaders()
+                    }
+                );
+
+
+            if (handleUnauthorized(response)) {
+                return;
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to load analytics."
+                );
+            }
+
+
+            const data =
+                await response.json();
+
+
+            const list =
+                document.getElementById(
+                    "category-breakdown-list"
+                );
+
+
+            list.innerHTML = "";
+
+
+            const categoryBreakdown =
+                data.categoryBreakdown || {};
+
+
+            const categories =
+                Object.keys(
+                    categoryBreakdown
+                );
+
+
+            const totalExpense =
+                Number(
+                    data.totalExpense
+                ) || 0;
+
+
+            if (categories.length === 0) {
+
+                list.innerHTML = `
+                    <p class="text-xs
+                              text-on-surface-variant">
+
+                        No category data available.
+
+                    </p>
+                `;
+
+                return;
+            }
+
+
+            categories.forEach(category => {
+
+                const amount =
+                    Number(
+                        categoryBreakdown[
+                            category
+                            ]
+                    ) || 0;
+
+
+                const percentage =
+                    totalExpense > 0
+                        ? Math.round(
+                            (amount / totalExpense) * 100
+                        )
+                        : 0;
+
+
+                list.innerHTML += `
+                    <div class="space-y-1">
+
+                        <div class="flex justify-between
+                                    text-xs font-semibold
+                                    text-on-surface gap-4">
+
+                            <span class="truncate">
+                                ${escapeHtml(category)}
+                            </span>
+
+                            <span class="font-mono whitespace-nowrap">
+                                ${formatCurrency(amount)}
+                                (${percentage}%)
+                            </span>
+
+                        </div>
+
+
+                        <div class="w-full h-2
+                                    bg-surface-low
+                                    rounded-full overflow-hidden
+                                    border border-outline-variant/30">
+
+                            <div class="h-full bg-primary"
+                                 style="width:${percentage}%">
+                            </div>
+
+                        </div>
+                    </div>
+                `;
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Analytics error:",
+                error
+            );
+        }
+    }
+
+
+    /* =========================================================
+       CLOSE MODAL WHEN CLICKING OUTSIDE
+       ========================================================= */
+
+    document.getElementById("tx-modal")
+        .addEventListener("click", event => {
+
+            if (
+                event.target.id === "tx-modal"
+            ) {
+                closeTransactionModal();
+            }
+        });
+
+</script>
+
+</body>
+</html>
+```
